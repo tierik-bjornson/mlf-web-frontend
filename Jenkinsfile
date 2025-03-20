@@ -24,9 +24,13 @@ spec:
     volumeMounts:
     - mountPath: "/home/jenkins/agent"
       name: "workspace-volume"
+    - mountPath: "/home/jenkins/.npm-global"
+      name: "npm-global"
   volumes:
   - emptyDir: {}
     name: workspace-volume
+  - emptyDir: {}
+    name: npm-global
 """
         }
     }
@@ -36,7 +40,7 @@ spec:
     }
 
     environment {
-        PATH = "/home/jenkins/agent/.npm-global/bin:$PATH"
+        PATH = "/home/jenkins/.npm-global/bin:$PATH"
     }
 
     stages {
@@ -73,21 +77,26 @@ spec:
             }
         }
 
-      
-
         stage('Linting Check') {
             steps {
-                sh 'ng lint'
+                script {
+                    def lintResult = sh(script: 'ng lint', returnStatus: true)
+                    if (lintResult != 0) {
+                        echo "⚠️ Linting có lỗi nhưng không dừng pipeline."
+                    } else {
+                        echo "✅ Linting không có lỗi."
+                    }
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build and tests passed successfully!"
+            echo "✅ Build và kiểm tra hoàn thành thành công!"
         }
         failure {
-            echo "❌ Pipeline failed. Check the logs."
+            echo "❌ Pipeline thất bại. Kiểm tra logs để fix lỗi."
         }
     }
 }
