@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
   - name: nodejs
-    image: node:18-bullseye  # Sử dụng image chính xác
+    image: node:18-alpine 
     command:
     - cat
     tty: true
