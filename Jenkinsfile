@@ -9,21 +9,21 @@ metadata:
     jenkins: nodejs-builder
 spec:
   containers:
-  - name: nodejs
-    image: node:18-alpine 
-    command:
-    - cat
+  - name: "nodejs"
+    image: "node:18"
+    command: ["cat"]
     tty: true
     resources:
-      requests:
-        memory: "1Gi"
-        cpu: "1"
       limits:
         memory: "2Gi"
         cpu: "2"
+      requests:
+        memory: "1Gi"
+        cpu: "1"
     volumeMounts:
-      - mountPath: "/home/jenkins/agent"
-        name: "workspace-volume"
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+
   volumes:
   - emptyDir: {}
     name: "workspace-volume"
