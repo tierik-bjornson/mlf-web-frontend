@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
   - name: nodejs
-    image: cypress/base:18.0.0  # Chứa sẵn Chrome để chạy test
+    image: node:18-bullseye  # Sử dụng image chính xác
     command:
     - cat
     tty: true
@@ -29,10 +29,6 @@ spec:
     name: "workspace-volume"
 """
         }
-    }
-
-    tools {
-        nodejs 'Node18'
     }
 
     environment {
@@ -62,26 +58,26 @@ spec:
             }
         }
 
-        stage('Build') {
+        stage('Build Angular App') {
             steps {
                 retry(3) {
-                    sh 'ng build --configuration=production'
+                    sh 'npx ng build --configuration=production'
                 }
             }
         }
 
-        stage('Test') {
+        stage('Run Unit Tests') {
             steps {
                 retry(3) {
-                    sh 'ng test --watch=false --browsers=ChromeHeadless'
+                    sh 'npx ng test --watch=false --browsers=ChromeHeadless'
                 }
             }
         }
 
-        stage('Lint') {
+        stage('Linting Check') {
             steps {
                 retry(3) {
-                    sh 'ng lint'
+                    sh 'npx ng lint'
                 }
             }
         }
@@ -89,10 +85,10 @@ spec:
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            echo '✅ Pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo '❌ Pipeline failed. Check the logs.'
         }
     }
 }
