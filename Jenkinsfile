@@ -10,7 +10,7 @@ metadata:
 spec:
   containers:
   - name: nodejs
-    image: node:18
+    image: cypress/base:18.0.0  # Chứa sẵn Chrome để chạy test
     command:
     - cat
     tty: true
@@ -42,7 +42,7 @@ spec:
     stages {
         stage('Check Network Connectivity') {
             steps {
-                sh 'ping -c 3 google.com || echo "No internet connection"'
+                sh 'curl -I https://www.google.com || echo "No internet connection"'
             }
         }
 
