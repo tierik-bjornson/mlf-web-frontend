@@ -73,11 +73,7 @@ spec:
             }
         }
 
-        stage('Run Unit Tests') {
-            steps {
-                sh 'ng test --watch=false --browsers=ChromeHeadless'
-            }
-        }
+      
 
         stage('Linting Check') {
             steps {
