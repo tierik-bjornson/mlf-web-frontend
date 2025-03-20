@@ -1,8 +1,38 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: nodejs-builder
+spec:
+  containers:
+  - name: nodejs
+    image: node:18
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "2Gi"
+        cpu: "2"
+    volumeMounts:
+      - mountPath: "/home/jenkins/agent"
+        name: "workspace-volume"
+  volumes:
+  - emptyDir: {}
+    name: "workspace-volume"
+"""
+        }
+    }
 
     tools {
-        nodejs 'Node18' 
+        nodejs 'Node18'
     }
 
     environment {
@@ -10,33 +40,49 @@ pipeline {
     }
 
     stages {
+        stage('Check Network Connectivity') {
+            steps {
+                sh 'ping -c 3 google.com || echo "No internet connection"'
+            }
+        }
+
         stage('Install Angular CLI') {
             steps {
-                sh 'npm install -g @angular/cli'
+                retry(3) {
+                    sh 'npm install -g @angular/cli'
+                }
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                retry(3) {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Build') {
             steps {
-                sh 'ng build --configuration=production'
+                retry(3) {
+                    sh 'ng build --configuration=production'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh 'ng test --watch=false --browsers=ChromeHeadless'
+                retry(3) {
+                    sh 'ng test --watch=false --browsers=ChromeHeadless'
+                }
             }
         }
 
         stage('Lint') {
             steps {
-                sh 'ng lint'
+                retry(3) {
+                    sh 'ng lint'
+                }
             }
         }
     }
