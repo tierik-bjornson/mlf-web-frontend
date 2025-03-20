@@ -5,7 +5,17 @@ pipeline {
         nodejs 'Node18' 
     }
 
+    environment {
+        PATH = "$HOME/.npm-global/bin:$PATH"
+    }
+
     stages {
+        stage('Install Angular CLI') {
+            steps {
+                sh 'npm install -g @angular/cli'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
@@ -14,7 +24,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'ng build --prod'
+                sh 'ng build --configuration=production'
             }
         }
 
@@ -29,8 +39,6 @@ pipeline {
                 sh 'ng lint'
             }
         }
-
-        
     }
 
     post {
