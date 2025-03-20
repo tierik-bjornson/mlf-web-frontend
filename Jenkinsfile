@@ -6,12 +6,13 @@ apiVersion: v1
 kind: Pod
 metadata:
   labels:
-    jenkins: nodejs-builder
+    jenkins: "nodejs-builder"
 spec:
   containers:
-  - name: "nodejs"
-    image: "node:18"
-    command: ["cat"]
+  - name: nodejs
+    image: node:18-bullseye
+    command:
+    - cat
     tty: true
     resources:
       limits:
@@ -23,72 +24,74 @@ spec:
     volumeMounts:
     - mountPath: "/home/jenkins/agent"
       name: "workspace-volume"
-
   volumes:
   - emptyDir: {}
-    name: "workspace-volume"
+    name: workspace-volume
 """
         }
     }
 
+    tools {
+        nodejs 'Node18'
+    }
+
     environment {
-        PATH = "$HOME/.npm-global/bin:$PATH"
+        PATH = "/home/jenkins/agent/.npm-global/bin:$PATH"
     }
 
     stages {
-        stage('Check Network Connectivity') {
+        stage('Checkout Code') {
             steps {
-                sh 'curl -I https://www.google.com || echo "No internet connection"'
+                script {
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Check Node & NPM') {
+            steps {
+                sh 'node -v'
+                sh 'npm -v'
             }
         }
 
         stage('Install Angular CLI') {
             steps {
-                retry(3) {
-                    sh 'npm install -g @angular/cli'
-                }
+                sh 'npm install -g @angular/cli'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                retry(3) {
-                    sh 'npm install'
-                }
+                sh 'npm install'
             }
         }
 
         stage('Build Angular App') {
             steps {
-                retry(3) {
-                    sh 'npx ng build --configuration=production'
-                }
+                sh 'ng build --configuration=production'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                retry(3) {
-                    sh 'npx ng test --watch=false --browsers=ChromeHeadless'
-                }
+                sh 'ng test --watch=false --browsers=ChromeHeadless'
             }
         }
 
         stage('Linting Check') {
             steps {
-                retry(3) {
-                    sh 'npx ng lint'
-                }
+                sh 'ng lint'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline completed successfully.'
+            echo "✅ Build and tests passed successfully!"
         }
         failure {
-            echo '❌ Pipeline failed. Check the logs.'
+            echo "❌ Pipeline failed. Check the logs."
         }
     }
 }
